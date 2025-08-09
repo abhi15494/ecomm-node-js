@@ -5,6 +5,8 @@ import { connectDB } from './config/db.js';
 
 import productRoutes from './routes/productRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import orterRoutes from './routes/orderRoutes.js';
+
 import { errorHandler, notFound } from './middleware/errorMiddleware.js';
 
 dotenv.config();
@@ -23,6 +25,7 @@ app.use(cookerParser());
 // ROUTES WHICH USED MIDDLEWARE FOR THE APPLICATION
 app.use('/api/products', productRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/orders', orterRoutes);
 // ROUTES WHICH USED MIDDLEWARE FOR THE APPLICATION
 
 // ERROR HANDLER FOR THE APPLICATION
