@@ -6,6 +6,7 @@ import { connectDB } from './config/db.js';
 import productRoutes from './routes/productRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import orterRoutes from './routes/orderRoutes.js';
+import configRoutes from './routes/configRoutes.js';
 
 import { errorHandler, notFound } from './middleware/errorMiddleware.js';
 
@@ -26,6 +27,7 @@ app.use(cookerParser());
 app.use('/api/products', productRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/orders', orterRoutes);
+app.use('/api/config', configRoutes);
 // ROUTES WHICH USED MIDDLEWARE FOR THE APPLICATION
 
 // ERROR HANDLER FOR THE APPLICATION
