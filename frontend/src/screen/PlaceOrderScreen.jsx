@@ -41,7 +41,7 @@ const PlaceOrderScreen = () => {
                 totalPrice: cartState.totalPrice
             }).unwrap();
             navigate(`/order/${response._id}`);
-            dispatch(clearCartItems());
+            // dispatch(clearCartItems());
         } catch (err) {
             console.error(err);
             toast.error('Failed to place order');

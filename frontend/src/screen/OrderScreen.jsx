@@ -9,7 +9,7 @@ import { toast } from 'react-toastify'
 
 const OrderScreen = () => {
     const { id: orderId } = useParams()
-    const { data: order, isLoading, error } = useGetOrderDetailsQuery(orderId);
+    const { data: order, isLoading, error, refetch } = useGetOrderDetailsQuery(orderId);
 
     const [payOrder, { isLoading: loadingPay }] = usePayOrderMutation();
     const [{ isPending }, payPalDispatch] = usePayPalScriptReducer();
@@ -24,18 +24,55 @@ const OrderScreen = () => {
                     currency: 'USD'
                 }
             });
-            console.log(loadPayPalScript)
+            payPalDispatch({
+                type: 'setLoadingStatus',
+                value: 'pending'
+            });
+            if(order && !order.isPaid && !window.paypal) {
+                loadPayPalScript();
+            }
         }
-    }, [order, paypal]);
+    }, [order, paypal, payPalDispatch, errorPaypal, loadingPaypal]);
+
+
+    const onApproveTest = async (data, actions) => {
+        await payOrder({ orderId, details: { payer: {} } }).unwrap();
+        refetch();
+        toast.success('Order paid successfully');
+    };
+
+    const createOrder = async (data, actions) => {
+        return actions.order.create({
+            purchase_units: [{
+                amount: {
+                    value: order.totalPrice.toFixed(2)
+                }
+            }]
+        }).then((orderId) => {
+            return orderId; 
+        });
+    };
+
+    const onApprove = async (data, actions) => {
+        return actions.order.capture().then(async (details) => {
+            try {
+                await payOrder({ orderId, details }).unwrap();
+                refetch();
+                toast.success('Order paid successfully');
+            } catch (err) {
+                console.error(err?.data?.messge || err?.message || 'Failed to pay order');
+                toast.error('Failed to pay order');
+            }
+        });
+    };
+
+    const onError = async (err) => {
+        console.error(err?.data?.messge || err?.message || 'Failed to pay order');
+        toast.error('Failed to pay order');
+    };
 
     if (isLoading) return <Loader />
     if (error) return <div>Error loading order details</div>
-    
-
-
-    console.log(paypal);
-    console.log(order);
-
     return (
         <>
             <h1>Order: {order._id}</h1>
@@ -113,11 +150,25 @@ const OrderScreen = () => {
                             </ListGroupItem>
                             {/* PAYORDER PLACEHOLDER  */}
                             {/* MARK AS DELIVERED PLACEHOLDER */}
-                            <ListGroupItem className='p-3'>
-                                <Button type='button' className='btn btn-block w-100' disabled={order.isPaid}>
-                                    {order.isPaid ? 'Paid' : 'Pay Now'}
-                                </Button>
-                            </ListGroupItem>
+                            {
+                                !order.isPaid && (
+                                    <ListGroupItem className='p-3'>
+                                        {loadingPay && <Loader />}
+                                        {isPending ? <Loader /> : (
+                                            <div>
+                                                <Button type='button' className='btn btn-block w-100' onClick={onApproveTest} disabled={order.isPaid}>
+                                                    {order.isPaid ? 'Paid' : 'Pay Now'}
+                                                </Button>
+                                                <PayPalButtons
+                                                    createOrder={createOrder}
+                                                    onApprove={onApprove}
+                                                    onError={onError}
+                                                />
+                                            </div>
+                                        )}
+                                    </ListGroupItem>
+                                )
+                            }
                         </ListGroup>
                     </Card>
                 </Col>
