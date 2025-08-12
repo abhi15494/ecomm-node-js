@@ -1,17 +1,19 @@
 import React, { use, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { useGetOrderDetailsQuery, useGetPaypalClientIdQuery, usePayOrderMutation } from '../slices/orderApiSlice'
+import { useDeliverOrderMutation, useGetOrderDetailsQuery, useGetPaypalClientIdQuery, usePayOrderMutation } from '../slices/orderApiSlice'
 import Loader from '../components/Loader'
 import { Button, Card, Col, Image, ListGroup, ListGroupItem, Row } from 'react-bootstrap'
 import Message from '../components/Message'
 import { PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js'
 import { toast } from 'react-toastify'
+import { useSelector } from 'react-redux'
 
 const OrderScreen = () => {
     const { id: orderId } = useParams()
     const { data: order, isLoading, error, refetch } = useGetOrderDetailsQuery(orderId);
-
+    const userInfo = useSelector(state => state.auth.userInfo);
     const [payOrder, { isLoading: loadingPay }] = usePayOrderMutation();
+    const [deliverOrder, { isLoading: loadingDeliver, error: errorgDeliver }] = useDeliverOrderMutation();
     const [{ isPending }, payPalDispatch] = usePayPalScriptReducer();
     const { data: paypal, isLoading: loadingPaypal, error: errorPaypal } = useGetPaypalClientIdQuery();
 
@@ -71,6 +73,16 @@ const OrderScreen = () => {
         toast.error('Failed to pay order');
     };
 
+    const handleDeliveredOrder = async () => {
+        try {
+            const response = await deliverOrder(orderId).unwrap();
+            refetch();
+            toast.success('Order delivered');
+        } catch (error) {
+            toast.error('Deliver status can\'t updated');  
+        }
+    }
+
     if (isLoading) return <Loader />
     if (error) return <div>Error loading order details</div>
     return (
@@ -88,7 +100,7 @@ const OrderScreen = () => {
                                 {order.shippingAddress.address}, {order.shippingAddress.city}, {order.shippingAddress.postalCode}, {order.shippingAddress.country}
                             </p>
                             {order.isDelivered ? (
-                                <Message variant='success'>Delivered on {order.deliveredAt}</Message>
+                                <Message variant='success'>Delivered on {order.deiiveredAt.substring(0, 19)}</Message>
                             ) : (
                                 <Message variant='danger'>Not Delivered</Message>
                             )}
@@ -96,7 +108,7 @@ const OrderScreen = () => {
                         <ListGroupItem className='bg-light'>
                             <h2>Payment Method</h2>
                             <p><strong>Method:</strong> {order.paymentMethod}</p>
-                            {order.isPaid ? <Message variant='success'>Paid on {order.paidAt}</Message> : <Message variant='danger'>Not Paid</Message>}
+                            {order.isPaid ? <Message variant='success'>Paid on {order.paidAt.substring(0, 19)}</Message> : <Message variant='danger'>Not Paid</Message>}
                         </ListGroupItem>
                         <ListGroupItem className='bg-light'>
                             <h2>Order Items</h2>
@@ -156,9 +168,11 @@ const OrderScreen = () => {
                                         {loadingPay && <Loader />}
                                         {isPending ? <Loader /> : (
                                             <div>
-                                                <Button type='button' className='btn btn-block w-100' onClick={onApproveTest} disabled={order.isPaid}>
-                                                    {order.isPaid ? 'Paid' : 'Pay Now'}
-                                                </Button>
+                                                <div className=' mb-3 pb-3 border-bottom'>
+                                                    <Button type='button' className='btn btn-block w-100' onClick={onApproveTest} disabled={order.isPaid}>
+                                                        {order.isPaid ? 'Paid' : 'Pay Now'}
+                                                    </Button>
+                                                </div>
                                                 <PayPalButtons
                                                     createOrder={createOrder}
                                                     onApprove={onApprove}
@@ -168,6 +182,14 @@ const OrderScreen = () => {
                                         )}
                                     </ListGroupItem>
                                 )
+                            }
+
+                            {
+                                !!userInfo?.isAdmin && !order?.isDelivered && (
+                                    loadingDeliver ? <Loader /> : <ListGroupItem className='p-3'>
+                                        <Button variant='info' className='w-100 text-white' onClick={handleDeliveredOrder}>Mark as delivered</Button>
+                                    </ListGroupItem>
+                                ) 
                             }
                         </ListGroup>
                     </Card>
