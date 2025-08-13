@@ -41,10 +41,9 @@ const ProductEditScreen = () => {
       productId,
       ...pdata
     };
-    const response = await updateProduct(updatedProduct).unwrap();1232
-    console.log(response);
+    const response = await updateProduct(updatedProduct).unwrap();
     try {
-      if(response.error) {
+      if(!response.error) {
         toast('Product udpated');
         navigate('/admin/productList');
       } else {
@@ -57,7 +56,7 @@ const ProductEditScreen = () => {
 
   return (
     <>
-      <h1>Update Product: {product._id}</h1>
+      <h1>Update Product: {product?._id}</h1>
       <FormContainer>
         <Form onSubmit={updateProductHandler}>
           <FormGroup className="mb-3">
