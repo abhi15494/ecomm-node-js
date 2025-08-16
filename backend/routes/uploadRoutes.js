@@ -6,24 +6,23 @@ import asyncHandler from '../middleware/asyncMiddleware.js';
 const router = express.Router();
 
 const storage = multer.diskStorage({
-    destination(req, file, callback) {
-        const uploadsDir = path.join(path.resolve(), '/uploads');
-        callback(null, uploadsDir);
+    destination(req, file, cb) {
+        cb(null, 'uploads/');
     },
-    filename(req, file, callback) {
-        callback(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
+    filename(req, file, cb) {
+        cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
     }
 });
 
-function checkFileType(file, callback) {
+function checkFileType(file, cb) {
     const fileTypes = /jpg|png|jpeg/;
     const extname = fileTypes.test(path.extname(file.originalname).toLowerCase());
 
     const mimetype = fileTypes.test(file.mimetype);
     if(extname && mimetype) {
-        return callback(null, true);
+        return cb(null, true);
     } else {
-        callback('Images only!');
+        cb('Images only!');
     }
 }
 
@@ -32,7 +31,7 @@ const upload = multer({
 });
 
 router.post('/', upload.single('image'), asyncHandler((req, res, next) => {
-    res.send({
+    res.json({
         message: 'Image uploaded',
         image: req.file.path
     })

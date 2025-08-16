@@ -1,5 +1,5 @@
 import React from 'react'
-import { useCreateProductMutation, useGetProductsQuery } from '../../slices/productApiSlice'
+import { useCreateProductMutation, useDeleteProductMutation, useGetProductsQuery } from '../../slices/productApiSlice'
 import { Button, Col, Row, Table } from 'react-bootstrap';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 import Loader from '../../components/Loader';
@@ -10,9 +10,19 @@ import { toast } from 'react-toastify';
 const ProductListScreen = () => {
     const { data: products, isLoading: productLoading, error: productError, refetch } = useGetProductsQuery();
     const [createProduct, {isLoading:loadingCreate, error:loadingError}] = useCreateProductMutation();
+    const [deleteProduct, {isLoading: deleteLoading, error: deleteError}] = useDeleteProductMutation();
 
     const deleteHandler = async (productId) => {
-        console.log('deleteHandler', productId);
+        if(!window.confirm('Are you sure you want to delete a product?')) {
+            return false;
+        }
+        try {
+            await deleteProduct(productId);
+            refetch();
+            toast.success('Product deleted.');
+        } catch (err) {
+            toast.error('SOMETHING WENT WRONG');
+        }
     }
 
     const createProductHandler = async () => {

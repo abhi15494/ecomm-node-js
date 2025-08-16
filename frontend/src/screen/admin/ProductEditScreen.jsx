@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useGetProductByIdQuery, useUpdateProductMutation } from '../../slices/productApiSlice'
+import { useGetProductByIdQuery, useUpdateProductMutation, useUploadProductImageMutation } from '../../slices/productApiSlice'
 import { toast } from 'react-toastify';
 import { useNavigate, useParams } from 'react-router-dom';
 import FormContainer from '../../components/FormContainer';
@@ -19,6 +19,7 @@ const ProductEditScreen = () => {
   const navigate = useNavigate();
   const [updateProduct, { isLoading: loadingUpdate, error: errorUpdate }] = useUpdateProductMutation();
   const { data: product, isLoading: loadingProduct, isError: errorProduct } = useGetProductByIdQuery(productId);
+  const [uploadImage, { isLoading: loadingUpload, isError: uploadError }] = useUploadProductImageMutation();
 
   useEffect(() => {
     if (product) {
@@ -34,6 +35,20 @@ const ProductEditScreen = () => {
       }));
     }
   }, product);
+
+  const uploadFileHandler = async (e) => {
+    if(e.target.files[0]) {
+      const formData = new FormData();
+      formData.append('image', e.target.files[0]);
+      try {
+        const res = await uploadImage(formData).unwrap();
+        toast.success(res.message);
+        setpData(p => ({ ...p, image: res.image }))
+      } catch (error) {
+        toast.error(error?.data?.message || error?.error)
+      }
+    }
+  }
 
   const updateProductHandler = async (e) => {
     e.preventDefault();
@@ -87,6 +102,7 @@ const ProductEditScreen = () => {
               placeholder="Enter description"
             />
           </FormGroup>
+
           <FormGroup className="mb-3">
             <FormLabel>Image</FormLabel>
             <FormControl
@@ -95,7 +111,9 @@ const ProductEditScreen = () => {
               onChange={(e) => setpData({ ...pdata, image: e.target.value })}
               placeholder="Enter image URL"
             />
+            <FormControl type="file" label="Choose file" onChange={uploadFileHandler}/>
           </FormGroup>
+
           <FormGroup className="mb-3">
             <FormLabel>Brand</FormLabel>
             <FormControl

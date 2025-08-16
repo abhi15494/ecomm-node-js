@@ -1,6 +1,15 @@
 import express from 'express';
-import { createProduct, getProductById, getProducts, updateProduct } from '../controllers/productController.js';
-import { admin, protect } from '../middleware/authMiddleware.js';
+import { 
+    createProduct, 
+    deleteProductById, 
+    getProductById, 
+    getProducts, 
+    updateProduct 
+} from '../controllers/productController.js';
+import { 
+    admin, 
+    protect 
+} from '../middleware/authMiddleware.js';
 const router = express.Router();
 
 router.route('/')
@@ -9,7 +18,8 @@ router.route('/')
 
 router.route('/:id')
     .get(getProductById)
-    .put(protect, admin, updateProduct);
+    .put(protect, admin, updateProduct)
+    .delete(protect, admin, deleteProductById);
 
 // We can write it like that one but above one can handle other methods cleanly
 // router.get('/', getProducts);
