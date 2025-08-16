@@ -117,7 +117,7 @@ const updateUserProfile = asyncHandler(async(req, res) => {
 // @access  Private/Admin
 const getUsers = asyncHandler(async(req, res) => {
     const users = await User.find({});
-    res.stats(200).json(users);
+    res.status(200).json(users);
 });
 
 // @desc    Delete users
@@ -127,7 +127,7 @@ const deleteUserById = asyncHandler(async(req, res) => {
     const user = await User.findById(req.params.id);
     if(user) {
         if(user.isAdmin) {
-            res.stats(400);
+            res.status(400);
             throw new Error('Can\'t delete a Admin.');
         }
         await User.deleteOne(user._id);
@@ -135,7 +135,7 @@ const deleteUserById = asyncHandler(async(req, res) => {
             message: 'User deleted Successfully.'
         })
     } else {
-        res.stats(404);
+        res.status(404);
         throw new Error('User not found.');
     }
 });
@@ -149,7 +149,7 @@ const getUserById = asyncHandler(async(req, res) => {
     if(user) {
         res.status(200).json(user);
     } else {
-        res.stats(404);
+        res.status(404);
         throw new Error('User not found.');
     }
 });
@@ -162,6 +162,7 @@ const updateUserById = asyncHandler(async(req, res) => {
     if(user) {
         user.name = req.body.name || user.name;
         user.email = req.body.email || user.email;
+        user.isAdmin = req.body.isAdmin || user.isAdmin;
         if(req.body.password) {
             user.password = req.body.password || user.password;
         }
@@ -173,7 +174,7 @@ const updateUserById = asyncHandler(async(req, res) => {
             isAdmin: updatedUser.isAdmin,
         });
     } else {
-        res.stats(404);
+        res.status(404);
         throw new Error('User not found.');
     }
 });

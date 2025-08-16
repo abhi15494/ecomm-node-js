@@ -18,7 +18,7 @@ export const userApiSlice = apiSlice.injectEndpoints({
         }),
         register: builder.mutation({
             query: (data) => ({
-                url: `${USERS_URL}`,
+                url: USERS_URL,
                 method: 'POST',
                 body: data
             })
@@ -29,8 +29,46 @@ export const userApiSlice = apiSlice.injectEndpoints({
                 method: 'PUT',
                 body: data
             })
+        }),
+        getUsers: builder.query({
+            query: () => ({
+                url: USERS_URL,
+                method: 'GET'
+            }),
+            providesTags: ['Users'],
+            keepUnusedDataFor: 5
+        }),
+        deleteUser: builder.mutation({
+            query: (userId) => ({
+                url: `${USERS_URL}/${userId}`,
+                method: "DELETE"
+            }),
+            invalidatesTags: ['Users']
+        }),
+        getUserDetailsById: builder.query({
+            query: (userId) => ({
+                url: `${USERS_URL}/${userId}`,
+            }),
+            keepUnusedDataFor: 5
+        }),
+        updateUser: builder.mutation({
+            query: (data) => ({
+                url: `${USERS_URL}/${data._id}`,
+                method: 'PUT',
+                body: data
+            }),
+            invalidatesTags: ['Users']
         })
     })
 });
 
-export const { useLoginMutation, useLogoutMutation, useRegisterMutation, useProfileMutation } = userApiSlice;
+export const { 
+    useLoginMutation, 
+    useLogoutMutation, 
+    useRegisterMutation, 
+    useProfileMutation,
+    useGetUsersQuery,
+    useDeleteUserMutation,
+    useGetUserDetailsByIdQuery,
+    useUpdateUserMutation
+} = userApiSlice;
