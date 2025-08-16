@@ -2,18 +2,19 @@ import React from 'react'
 
 import { useDeleteUserMutation, useGetUsersQuery } from '../../slices/userApiSlice'
 import { Row, Col, Button, Table } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaEdit, FaCheck, FaTimes, FaTrash} from 'react-icons/fa';
 import Loader from '../../components/Loader';
 import Message from '../../components/Message';
 import { toast } from 'react-toastify';
 
 const UsersListScreen = () => {
+    const navigate = useNavigate();
     const { data: users, isLoading: loadingUsers, error: errorUsers, refetch } = useGetUsersQuery();
     const [deleteUser, {isLoading: loadingDelete, error: errorDelete}] = useDeleteUserMutation();
 
     const createUserHandler = async () => {
-
+        navigate(`/admin/user/new`);
     }
     
     const deleteUserHandler = async (id) => {
@@ -21,7 +22,7 @@ const UsersListScreen = () => {
             return false;
         }
         try {
-            const response = await deleteUser(id).unwrap();
+            await deleteUser(id).unwrap();
             refetch();
             toast.success('User successfully deleted');
         } catch (error) {

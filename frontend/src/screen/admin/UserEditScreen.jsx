@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useGetUserDetailsByIdQuery, useUpdateUserMutation } from '../../slices/userApiSlice';
+import { useCreateNewUserMutation, useGetUserDetailsByIdQuery, useUpdateUserMutation } from '../../slices/userApiSlice';
 import { Form, Button, FormGroup, FormLabel, FormControl, FormCheck } from 'react-bootstrap';
 import FormContainer from '../../components/FormContainer';
 import { toast } from 'react-toastify';
@@ -14,8 +14,12 @@ const UserEditScreen = () => {
         isAdmin: '',
         password: ''
     });
-    const { data: user, isLoading: userLoading, error: userError, refetch } = useGetUserDetailsByIdQuery(userId);
+    
+    const { data: user, isLoading: userLoading, error: userError, refetch } = useGetUserDetailsByIdQuery(userId, {
+        skip: !userId,
+    });
     const [updateUser, { isLoading: updateLoading, error: updateError }] = useUpdateUserMutation();
+    const [createUser, {isLoading: newUserLoading, error: newUserError}] = useCreateNewUserMutation();
 
     useEffect(() => {
         if (user && !userLoading) {
@@ -34,12 +38,15 @@ const UserEditScreen = () => {
     const updateUserHandler = async (e) => {
         e.preventDefault();
         try {
-            const payload = {
-                _id: userId,
-                ...udata
+            const payload = { ...udata };
+            if(userId) {
+                payload._id = userId;
+                await updateUser(payload).unwrap();
+                toast.success('User updated');
+            } else {
+                await createUser(payload).unwrap();
+                toast.success('User created successfully');
             }
-            const response = await updateUser(payload).unwrap();
-            toast.success('User updated');
             goback();
         } catch (error) {
             console.log(error);
@@ -49,8 +56,14 @@ const UserEditScreen = () => {
 
     return (
         <>
-            <Button onClick={goback}>Back</Button>
-            <h1>Update user: {user?._id}</h1>
+            <div className="d-flex align-items-center">
+                <Button className='me-3' onClick={goback}>Back</Button>
+                {
+                    userId ? 
+                    <h1 className='m-0'>Update user: {user?._id}</h1> : 
+                    <h1 className='m-0'>Create new user</h1>
+                }
+            </div>
             <FormContainer>
                 <Form onSubmit={updateUserHandler}>
                     <FormGroup className="mb-3">
