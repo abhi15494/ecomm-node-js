@@ -5,7 +5,7 @@ import asyncHandler from '../middleware/asyncMiddleware.js';
 // @route   GET /api/products
 // @access  Public
 export const getProducts = asyncHandler(async (req, res) => {
-    const pageSize = 8;
+    const pageSize = process.env.PAGINATION_LIMIT;
     const page = Number(req.query.pageNumber) || 1;
 
     const keyword = req.query.keyword ? {
@@ -137,3 +137,46 @@ export const createProductReview = asyncHandler(async (req, res) => {
         throw new Error("Product not found");
     }
 })
+
+// @desc    Get top rated products
+// @route   GET /api/products/top
+// @access  Public
+export const getTopProducts = asyncHandler(async (req, res) => {
+    const product = await Product.find({}).sort({ rating: -1 }).limit(3);
+    if(product) {
+        res.json(product);
+    } else {
+        res.status(404);
+        throw new Error("Product not found");
+    }
+})
+
+/*
+Possible methods of Product (Mongoose Model):
+
+- Product.find()
+- Product.findOne()
+- Product.findById()
+- Product.countDocuments()
+- Product.deleteOne()
+- Product.save() (called on a Product instance)
+- Product.create()
+- Product.updateOne()
+- Product.updateMany()
+- Product.findByIdAndUpdate()
+- Product.findByIdAndDelete()
+- Product.findOneAndUpdate()
+- Product.findOneAndDelete()
+- Product.aggregate()
+- Product.insertMany()
+- Product.replaceOne()
+- Product.exists()
+- Product.distinct()
+- Product.estimatedDocumentCount()
+- Product.deleteMany()
+- Product.remove() (deprecated)
+- Product.populate() (on documents/queries)
+- Product.where()
+
+Note: Not all are used in your code, but these are common Mongoose model methods.
+*/

@@ -6,7 +6,9 @@ import Loader from '../components/Loader';
 import Message from '../components/Message';
 import { useNavigate, useParams } from 'react-router-dom';
 import Paginate from '../components/Paginate';
+import Meta from '../components/Meta';
 import { useSelector } from 'react-redux';
+import ProductCarousal from '../components/ProductCarousal';
 
 const HomeScreen = () => {
     const { pageNumber, keyword } = useParams();
@@ -20,11 +22,17 @@ const HomeScreen = () => {
     const navigate = useNavigate();
     return (
         <>
+            <Meta title="pro"/>
             <Row>
                 {keyword && <Col md={'auto'}><Button onClick={e => navigate('/')}>Go Back</Button></Col>}
                 <Col md={9}>
                     <h1>Latest Products</h1>
                 </Col>
+                {
+                    !keyword && <Col md={12}>
+                        <ProductCarousal />
+                    </Col>
+                }
             </Row>
             {
                 isLoading ? <Loader /> : error ? <Message variant={'danger'}>{error?.data?.message || error?.error}</Message> : (
@@ -37,7 +45,7 @@ const HomeScreen = () => {
                             })
                         }
                         <Col sm={12} md={12} lg={12}>
-                            <Paginate pages={pages} page={page} isAdmin={userInfo.isAdmin} keyword={keyword} />
+                            <Paginate pages={pages} page={page} isAdmin={userInfo?.isAdmin} keyword={keyword} />
                         </Col>
                     </Row>
                 ) 
