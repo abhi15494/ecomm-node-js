@@ -44,7 +44,7 @@ export const getProductById = asyncHandler(async (req, res) => {
 
 // @desc    Delete a single products via id
 // @route   DELETE /api/products/:id
-// @access  Public/Admin
+// @access  Private/Admin
 export const deleteProductById = asyncHandler(async (req, res) => {
     const product = await Product.findOne({ _id: req.params.id });
     if(product) {
@@ -79,6 +79,46 @@ export const updateProduct = asyncHandler(async (req, res) => {
 
         const updatedProduct = await product.save();
         res.status(200).json(updatedProduct);
+    } else {
+        res.status(404);
+        throw new Error("Product not found");
+    }
+})
+
+// @desc    Create a new Review
+// @route   POST /api/products/:id/review
+// @access  Private
+export const createProductReview = asyncHandler(async (req, res) => {
+    const {
+        rating, comment
+    } = req.body;
+    const product = await Product.findOne({ _id: req.params.id });
+    if(product) {
+        // Check if product is already reviewed
+        const alreadyReviewed = product.reviews.find((r) => r.user.toString() === req.user._id.toString());
+        if(alreadyReviewed) {
+            res.status(400);
+            throw new Error('Product already reviewed');
+        }
+
+        // Check if product is not reviewed yet
+        const review = {
+            name: req.user.name,
+            rating: Number(rating),
+            comment,
+            user: req.user._id
+        };
+
+        product.reviews.push(review);
+        product.numReviews = product.reviews.length;
+        product.rating = product.reviews.reduce((acc, review) => acc + review.rating, 0) / product.reviews.length;
+
+        await product.save();
+        
+        res.status(201);
+        res.send({
+            message: 'Product reviewed successfully'
+        })
     } else {
         res.status(404);
         throw new Error("Product not found");
