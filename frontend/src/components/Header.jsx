@@ -6,6 +6,7 @@ import { FaEarlybirds, FaShoppingBasket } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLogoutMutation } from '../slices/userApiSlice';
 import { logout } from '../slices/authSlice';
+import SearchBox from './SearchBox';
 
 const Header = () => {
     const cartItems = useSelector(state => state?.cart?.cartItems);
@@ -34,6 +35,7 @@ const Header = () => {
                     <Navbar.Toggle aria-controls='basic-navbar-toggle'></Navbar.Toggle>
                     <Navbar.Collapse id="basic-navbar-toggle">
                         <Nav className='ms-auto'>
+                            <SearchBox />
                             <Nav.Link as={Link} to="/cart"><FaShoppingCart /> Cart {
                                 cartItems?.length > 0 && (
                                     <Badge pill bg="success" style={{marginLeft: '5px'}}>

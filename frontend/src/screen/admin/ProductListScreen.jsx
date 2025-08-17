@@ -1,16 +1,24 @@
 import React from 'react'
 import { useCreateProductMutation, useDeleteProductMutation, useGetProductsQuery } from '../../slices/productApiSlice'
-import { Button, Col, Row, Table } from 'react-bootstrap';
+import { Button, Col, Image, Row, Table } from 'react-bootstrap';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 import Loader from '../../components/Loader';
 import Message from '../../components/Message';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import Paginate from '../../components/Paginate';
 
 const ProductListScreen = () => {
-    const { data: products, isLoading: productLoading, error: productError, refetch } = useGetProductsQuery();
+    const {pageNumber, keyword} = useParams();
+    const { data, isLoading: productLoading, error: productError, refetch } = useGetProductsQuery({pageNumber, keyword});
     const [createProduct, {isLoading:loadingCreate, error:loadingError}] = useCreateProductMutation();
     const [deleteProduct, {isLoading: deleteLoading, error: deleteError}] = useDeleteProductMutation();
+
+    const {
+        products,
+        pages,
+        page
+    } = data || {};
 
     const deleteHandler = async (productId) => {
         if(!window.confirm('Are you sure you want to delete a product?')) {
@@ -54,11 +62,12 @@ const ProductListScreen = () => {
                 <Table striped hover responsive className='table-sm'>
                     <thead>
                         <tr>
-                            <td>ID</td>
-                            <td>NAME</td>
-                            <td>PRICE</td>
+                            <td>IMAGE</td>
+                            <td style={{textAlign: 'left'}}>NAME</td>
                             <td>CATEGORY</td>
                             <td>BRANDS</td>
+                            <td>ID</td>
+                            <td>PRICE</td>
                             <td></td>
                         </tr>
                     </thead>
@@ -66,11 +75,14 @@ const ProductListScreen = () => {
                         {
                             products.map((product) => (
                                 <tr key={product._id}>
-                                    <td>{product._id}</td>
-                                    <td>{product.name}</td>
-                                    <td>${product.price}</td>
+                                    <td>
+                                        <Image src={product.image} height={50} className='border'/>
+                                    </td>
+                                    <td style={{textAlign: 'left'}}>{product.name}</td>
                                     <td>{product.category}</td>
                                     <td>{product.brand}</td>
+                                    <td>{product._id}</td>
+                                    <td>${product.price}</td>
                                     <td>
                                         <Link to={`/admin/product/${product._id}/edit`}>
                                             <Button className='btn-sm mx-2 text-white'><FaEdit /></Button>
@@ -82,6 +94,7 @@ const ProductListScreen = () => {
                         }
                     </tbody>
                 </Table>
+                <Paginate pages={pages} page={page} isAdmin={true} keyword={keyword} />
             </>}
         </>
     )

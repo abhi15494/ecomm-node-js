@@ -37,6 +37,9 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<App />}>
       <Route index={true} path="/" element={<HomeScreen />} />
+      <Route index={true} path="/search/:keyword" element={<HomeScreen />} />
+      <Route index={true} path="/page/:pageNumber" element={<HomeScreen />} />
+      <Route index={true} path="/page/:pageNumber/search/:keyword" element={<HomeScreen />} />
       <Route path="/product/:id" element={<ProductScreen />} />
       <Route path="/cart" element={<CartScreen />} />
       <Route path="/login" element={<LoginScreen />} />
@@ -48,16 +51,17 @@ const router = createBrowserRouter(
         <Route path="/order/:id" element={<OrderScreen />} />
         <Route path="/profile" element={<ProfileScreen />} />
       </Route>
-
       <Route path="" element={<AdminPrivateRoute />}>
         <Route path="/admin/orderlist" element={<OrderListScreen />} />
         <Route path="/admin/productlist" element={<ProductListScreen />} />
+        <Route path="/admin/productlist/search/:keyword" element={<ProductListScreen />} />
+        <Route path="/admin/productlist/page/:pageNumber" element={<ProductListScreen />} />
+        <Route path="/admin/productlist/page/:pageNumber/search/:keyword" element={<ProductListScreen />} />
         <Route path="/admin/product/:id/edit" element={<ProductEditScreen />} />
         <Route path="/admin/userlist" element={<UsersListScreen />} />
         <Route path="/admin/user/:id/edit" element={<UserEditScreen />} />
         <Route path="/admin/user/new" element={<UserEditScreen />} />
       </Route>
-
     </Route>
   )
 )
