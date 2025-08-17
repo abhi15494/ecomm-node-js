@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
-import { Button, Card, Col, Container, FormControl, Image, ListGroup, ListGroupItem, Row } from 'react-bootstrap';
+import { useParams, Link, useNavigate, Form } from 'react-router-dom'
+import { Button, Card, Col, Container, FormControl, FormGroup, FormLabel, Image, ListGroup, ListGroupItem, Row } from 'react-bootstrap';
 import { FaArrowLeft } from 'react-icons/fa';
 import Rating from '../components/Rating';
 import Loader from '../components/Loader';
@@ -8,6 +8,7 @@ import { useGetProductByIdQuery, useReviewProductMutation } from '../slices/prod
 import Message from '../components/Message';
 import { addToCart } from '../slices/cartSlice';
 import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 
 const ProductScreen = () => {
     const { id: productId } = useParams();
@@ -16,8 +17,8 @@ const ProductScreen = () => {
         rating: 0,
         comment: ''
     });
-    const { data: product, isLoading, error  } = useGetProductByIdQuery(productId);
-    const [createReview, {isLoading: loadingReveiw, error: errorReview}] = useReviewProductMutation();
+    const {data: product, isLoading, error, refetch} = useGetProductByIdQuery(productId);
+    const [createReview, {isLoading: loadingReview, error: errorReview}] = useReviewProductMutation();
     const {userInfo} = useSelector(state => state.auth);
 
     const dispatch = useDispatch();
@@ -30,6 +31,23 @@ const ProductScreen = () => {
         }));
         navigate('/cart');
     };
+
+    const onReviewSubmitHandler = async (e) => {
+        e.preventDefault();
+        const {rating, comment} = pdata;
+        const payload = {
+            productId,
+            rating,
+            comment
+        }
+        try {
+            await createReview(payload).unwrap();
+            refetch();
+            toast.success('Review submitted successfully.');
+        } catch (error) {
+            toast.error(error.data.message || error.error);
+        }
+    }
 
     return (
         <>
@@ -93,9 +111,44 @@ const ProductScreen = () => {
                                 </Card>
                             </Col>
                         </Row>
-                        <Row className='review'>
-                            <Col md={6}>
+                        <Row className='review mt-4'>
+                            <Col md={8}>
                                 <h2>Reviews</h2>
+                                {product.reviews.length === 0 && <Message>No Reviews</Message>}
+                                <ListGroup variant='flush'>
+                                    {product.reviews.map(review => (
+                                        <ListGroupItem key={review._id}>
+                                            <strong>{review.name}</strong>
+                                            <Rating value={review.rating} />
+                                            <p>{review.createdAt.substring(0, 10)}</p>
+                                            <p>{review.comment}</p>
+                                        </ListGroupItem>
+                                    ))}
+                                    <ListGroupItem>
+                                        <h2>Write a Customer review</h2>
+                                        {loadingReview && <Loader />}
+                                        {userInfo ? (
+                                            <Form onSubmit={onReviewSubmitHandler}>
+                                                <FormGroup controlId={'rating'} className="my-2">
+                                                    <FormLabel>Rating</FormLabel>
+                                                    <FormControl as="select" value={pdata.rating} onChange={(e) => setpdata(p => ({...p, rating: e.target.value}))}>
+                                                        <option value="">Select...</option>
+                                                        <option value="1">1 - Poor</option>
+                                                        <option value="2">2 - Fair</option>
+                                                        <option value="3">3 - Good</option>
+                                                        <option value="4">4 - Very Good</option>
+                                                        <option value="5">5 - Excellent</option>
+                                                    </FormControl>
+                                                </FormGroup>
+                                                <FormGroup controlId='comment' className='my-3'>
+                                                    <FormLabel>Comment</FormLabel>
+                                                    <FormControl as="textarea" value={pdata.comment} onChange={(e) => setpdata(p => ({...p, comment: e.target.value}))} />
+                                                </FormGroup>
+                                                <Button className='w-100' type="submit" disabled={loadingReview}>Submit Review</Button>
+                                            </Form>
+                                        ) : (<Message>Please <Link to='/login'>Sign in</Link> to write a review.</Message>)}
+                                    </ListGroupItem>
+                                </ListGroup>
                             </Col>
                             
                         </Row>
